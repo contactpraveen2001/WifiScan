@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -17,7 +18,7 @@ import static com.example.praveenagrawal.wifiscan.FeedReaderContract.SQL_DELETE_
 
 public class FeedReaderDbHelper extends SQLiteOpenHelper {
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "FeedReader.db";
 
     public FeedReaderDbHelper(Context context) {
@@ -26,6 +27,7 @@ public class FeedReaderDbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(SQL_CREATE_ENTRIES);
     }
+
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // This database is only a cache for online data, so its upgrade policy is
         // to simply to discard the data and start over
@@ -44,6 +46,7 @@ public class FeedReaderDbHelper extends SQLiteOpenHelper {
 // Create a new map of values, where column names are the keys
         ContentValues values = new ContentValues();
         values.put(FeedEntry.COLUMN_NAME_TITLE, SSID);
+        values.put(FeedEntry.COLUMN_NAME_TYPE,"2");
 
 // Insert the new row, returning the primary key value of the new row
         long newRowId = db.insert(FeedEntry.TABLE_NAME, null, values);
@@ -61,6 +64,29 @@ public class FeedReaderDbHelper extends SQLiteOpenHelper {
         db.delete(FeedEntry.TABLE_NAME, selection, selectionArgs);
     }
 
+    public void updateType(String SSID, String type)
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+// New value for one column
+        ContentValues values = new ContentValues();
+        values.put(FeedEntry.COLUMN_NAME_TYPE, type);
+
+// Which row to update, based on the title
+        String selection = FeedEntry.COLUMN_NAME_TITLE + " LIKE ?";
+        String[] selectionArgs = {SSID};
+
+        int count = db.update(
+                FeedEntry.TABLE_NAME,
+                values,
+                selection,
+                selectionArgs);
+        if (count > 0)
+        {
+            Log.w("update db" , "table is updated");
+        }
+    }
+
     public ArrayList<String> getSavedList()
     {
         ArrayList<String> SSIDList = new ArrayList<String>();
@@ -70,11 +96,12 @@ public class FeedReaderDbHelper extends SQLiteOpenHelper {
 // you will actually use after this query.
         String[] projection = {
                // FeedEntry._ID,
-                FeedEntry.COLUMN_NAME_TITLE
+                FeedEntry.COLUMN_NAME_TITLE,
+                FeedEntry.COLUMN_NAME_TYPE
         };
 
 // Filter results WHERE "title" = 'My Title'
-        String selection = FeedEntry.COLUMN_NAME_TITLE + " = ?";
+  //      String selection = FeedEntry.COLUMN_NAME_TITLE + " = ?";
 
         Cursor cursor = db.query(
                 FeedEntry.TABLE_NAME,                     // The table to query
@@ -88,9 +115,11 @@ public class FeedReaderDbHelper extends SQLiteOpenHelper {
         while(cursor.moveToNext()) {
             String SSID = cursor.getString(
                     cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_TITLE));
+            SSID = SSID + ":" + cursor.getString(cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_TYPE));
             SSIDList.add(SSID);
         }
         cursor.close();
         return SSIDList;
     }
+
 }

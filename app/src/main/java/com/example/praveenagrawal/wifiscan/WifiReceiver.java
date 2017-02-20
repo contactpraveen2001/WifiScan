@@ -24,7 +24,7 @@ public class WifiReceiver extends BroadcastReceiver
         Log.w("Scan","receive Scan");
         AudioManager audioManager = (AudioManager) c.getSystemService(AUDIO_SERVICE);
         WifiManager wifiManager = (WifiManager) c.getSystemService (c.WIFI_SERVICE);
-        if (audioManager.getRingerMode() != AudioManager.RINGER_MODE_NORMAL &&  audioManager.getRingerMode() != AudioManager.RINGER_MODE_VIBRATE)
+        if (audioManager.getRingerMode() != AudioManager.RINGER_MODE_NORMAL &&  audioManager.getRingerMode() != AudioManager.RINGER_MODE_VIBRATE && audioManager.getRingerMode() != AudioManager.RINGER_MODE_SILENT)
         {
             return;
         }
@@ -49,11 +49,24 @@ public class WifiReceiver extends BroadcastReceiver
         ArrayList<String> selectList = mDbHelper.getSavedList();
         for (int i = 0; i < selectList.size(); i++)
         {
-            if (ssid.equals(selectList.get(i)))
+            if (ssid.equals(selectList.get(i).split(":")[0]))
             {
-                audioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
-                Log.w("Scan","RINGER_MODE_VIBRATE");
-                return;
+                switch (selectList.get(i).split(":")[1])
+                {
+                    case "1":
+                        audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+                        Log.w("Scan","RINGER_MODE_VIBRATE");
+                        return;
+                    case "2":
+                        audioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+                        Log.w("Scan","RINGER_MODE_VIBRATE");
+                        return;
+                    case "3":
+                        audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+                        Log.w("Scan","RINGER_MODE_VIBRATE");
+                        return;
+                }
+
             }
             else
             {

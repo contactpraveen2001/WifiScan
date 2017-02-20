@@ -15,11 +15,14 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.ContextMenu;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -34,6 +37,7 @@ public class WifiList extends AppCompatActivity {
     ScanList scanList;
     ArrayList<String> selectList;
     FeedReaderDbHelper mDbHelper;
+    CheckBox currentCheckbox;
     private final Handler handler = new Handler();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,42 +120,107 @@ public class WifiList extends AppCompatActivity {
             linearLayout.removeAllViewsInLayout();
             for (int i = 0; i < selectList.size(); i++)
             {
-                CheckBox checkBox = getCheckBox(selectList.get(i));
+                CheckBox checkBox = getCheckBox(selectList.get(i).split(":")[0]);
+                LinearLayout subView = new LinearLayout(this);
+                subView.setOrientation(LinearLayout.HORIZONTAL);
                 checkBox.setChecked(true);
-                linearLayout.addView(checkBox);
+                subView.addView(checkBox);
+                ImageView icon = new ImageView(this);
+                icon.setPadding(getDpToInt(8),getDpToInt(6),getDpToInt(8),0);
+                switch (selectList.get(i).split(":")[1])
+                {
+                    case "1":
+                        icon.setImageResource(R.drawable.ic_silent);
+                        break;
+                    case "2":
+                        icon.setImageResource(R.drawable.ic_vibration);
+                        break;
+                    case "3":
+                        icon.setImageResource(R.drawable.ic_normal);
+                        break;
+                }
+                subView.addView(icon);
+                linearLayout.addView(subView);
             }
             for (int i = 0; i < wifiList.size(); i++)
             {
                 CheckBox checkBox = getCheckBox(wifiList.get(i));
-                linearLayout.addView(checkBox);
+                LinearLayout subView = new LinearLayout(this);
+                subView.setOrientation(LinearLayout.HORIZONTAL);
+                subView.addView(checkBox);
+                linearLayout.addView(subView);
             }
         }
     }
 
     public CheckBox getCheckBox(String title)
     {
+
+        final ImageView icon = new ImageView(this);
+        icon.setPadding(getDpToInt(8),getDpToInt(6),getDpToInt(8),0);
         final CheckBox checkBox = new CheckBox(this);
         checkBox.setText(title);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        checkBox.setTextSize(16);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        checkBox.setTextSize(24);
         checkBox.setLayoutParams(params);
         checkBox.setPadding(getDpToInt(8),0,getDpToInt(8),0);
+        registerForContextMenu(checkBox);
         checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (checkBox.isChecked())
                 {
-                    selectList.add((String) checkBox.getText());
+                    LinearLayout subView = (LinearLayout) checkBox.getParent();
+                    icon.setImageResource(R.drawable.ic_vibration);
+                    subView.addView(icon);
                     mDbHelper.addSSID((String) checkBox.getText());
                 }
                 else
                 {
-                    selectList.remove(checkBox.getText());
+                    LinearLayout subView = (LinearLayout) checkBox.getParent();
+                    subView.removeViewAt(1);
                     mDbHelper.removeSSID((String) checkBox.getText());
                 }
             }
         });
         return checkBox;
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        currentCheckbox = (CheckBox) v;
+        if (currentCheckbox.isChecked())
+        {
+            super.onCreateContextMenu(menu, v, menuInfo);
+            MenuInflater inflater = getMenuInflater();
+            inflater.inflate(R.menu.context_menu, menu);
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        LinearLayout subView = (LinearLayout) currentCheckbox.getParent();
+        ImageView icon = (ImageView) subView.getChildAt(1);
+        switch (item.getItemId())
+        {
+            case R.id.silent:
+                icon.setImageResource(R.drawable.ic_silent);
+                mDbHelper.updateType(currentCheckbox.getText().toString() , "1");
+                Log.w("item menu" , "silent");
+                return true;
+            case R.id.vibration:
+                icon.setImageResource(R.drawable.ic_vibration);
+                mDbHelper.updateType(currentCheckbox.getText().toString() , "2");
+                Log.w("Item menu", "vibration");
+                return true;
+            case R.id.ring:
+                icon.setImageResource(R.drawable.ic_normal);
+                mDbHelper.updateType(currentCheckbox.getText().toString() , "3");
+                Log.w("Item menu", "Normal");
+                return true;
+        }
+
+        return super.onContextItemSelected(item);
     }
 
     public class ScanList extends BroadcastReceiver
@@ -184,7 +253,7 @@ public class WifiList extends AppCompatActivity {
             }
             for (int i = 0; i < selectList.size(); i++)
             {
-                String savedSSID = selectList.get(i);
+                String savedSSID = selectList.get(i).split(":")[0];
                 for (int j = 0; j < wifiList.size(); j++)
                 {
                     if (savedSSID.equals(wifiList.get(j)))

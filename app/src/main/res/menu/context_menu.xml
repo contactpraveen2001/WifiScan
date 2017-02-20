@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/ring"
+        android:title="Normal"
+        android:titleCondensed="Normal"
+        android:icon="@drawable/ic_normal"
+        android:onClick="onContextItemSelected" />
+    <item android:id="@+id/silent"
+        android:title="Silent"
+        android:titleCondensed="Silent"
+        android:icon="@drawable/ic_silent"
+        android:onClick="onContextItemSelected" />
+    <item android:id="@+id/vibration"
+        android:title="Vibration"
+        android:titleCondensed="Vibration"
+        android:icon="@drawable/ic_vibration"
+        android:onClick="onContextItemSelected" />
+</menu>
