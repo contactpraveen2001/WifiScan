@@ -1,6 +1,7 @@
 package com.example.praveenagrawal.wifiscan;
 
 import android.Manifest;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -204,9 +205,19 @@ public class WifiList extends AppCompatActivity {
         switch (item.getItemId())
         {
             case R.id.silent:
-                icon.setImageResource(R.drawable.ic_silent);
-                mDbHelper.updateType(currentCheckbox.getText().toString() , "1");
-                Log.w("item menu" , "silent");
+                NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && !notificationManager.isNotificationPolicyAccessGranted()) {
+
+                    Intent intent = new Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+                    startActivity(intent);
+                }
+                else
+                {
+                    icon.setImageResource(R.drawable.ic_silent);
+                    mDbHelper.updateType(currentCheckbox.getText().toString() , "1");
+                    Log.w("item menu" , "silent");
+                }
                 return true;
             case R.id.vibration:
                 icon.setImageResource(R.drawable.ic_vibration);
