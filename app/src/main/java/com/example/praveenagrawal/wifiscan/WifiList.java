@@ -27,6 +27,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,9 +42,12 @@ public class WifiList extends AppCompatActivity {
     FeedReaderDbHelper mDbHelper;
     CheckBox currentCheckbox;
     private final Handler handler = new Handler();
+    private FirebaseAnalytics mFirebaseAnalytics;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Obtain the FirebaseAnalytics instance.
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
         setContentView(R.layout.activity_wifi_list);
         mDbHelper = new FeedReaderDbHelper(this);
         selectList = mDbHelper.getSavedList();
@@ -149,6 +154,9 @@ public class WifiList extends AppCompatActivity {
                 LinearLayout subView = new LinearLayout(this);
                 subView.setOrientation(LinearLayout.HORIZONTAL);
                 subView.addView(checkBox);
+                ImageView icon = new ImageView(this);
+                icon.setPadding(getDpToInt(8),getDpToInt(6),getDpToInt(8),0);
+                subView.addView(icon);
                 linearLayout.addView(subView);
             }
         }
@@ -157,8 +165,6 @@ public class WifiList extends AppCompatActivity {
     public CheckBox getCheckBox(String title)
     {
 
-        final ImageView icon = new ImageView(this);
-        icon.setPadding(getDpToInt(8),getDpToInt(6),getDpToInt(8),0);
         final CheckBox checkBox = new CheckBox(this);
         checkBox.setText(title);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -172,14 +178,15 @@ public class WifiList extends AppCompatActivity {
                 if (checkBox.isChecked())
                 {
                     LinearLayout subView = (LinearLayout) checkBox.getParent();
+                    ImageView icon = (ImageView) subView.getChildAt(1);
                     icon.setImageResource(R.drawable.ic_vibration);
-                    subView.addView(icon);
                     mDbHelper.addSSID((String) checkBox.getText());
                 }
                 else
                 {
                     LinearLayout subView = (LinearLayout) checkBox.getParent();
-                    subView.removeViewAt(1);
+                    ImageView icon = (ImageView) subView.getChildAt(1);
+                    icon.setImageDrawable(null);
                     mDbHelper.removeSSID((String) checkBox.getText());
                 }
             }
