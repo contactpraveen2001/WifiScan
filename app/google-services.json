@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "72867304499",
+    "firebase_url": "https://wifiscan-55d05.firebaseio.com",
+    "project_id": "wifiscan-55d05",
+    "storage_bucket": "wifiscan-55d05.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:72867304499:android:2fe3130c02639e44",
+        "android_client_info": {
+          "package_name": "com.example.praveenagrawal.wifiscan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "72867304499-6t7qpu1edkj5alvpacolu02osbqkcpir.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.praveenagrawal.wifiscan",
+            "certificate_hash": "4DBB2A471F74D64EF6B8A2D237C5749FE2EE2151"
+          }
+        },
+        {
+          "client_id": "72867304499-j2t6819irve73dud5tc52uqmmpabdna3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKUu1IKLqL_Y12dtExLnsHJAporg7U_SE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "72867304499-j2t6819irve73dud5tc52uqmmpabdna3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
