@@ -13,11 +13,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.ContextMenu;
-import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,6 +25,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -41,6 +42,7 @@ public class WifiList extends AppCompatActivity {
     ArrayList<String> selectList;
     FeedReaderDbHelper mDbHelper;
     CheckBox currentCheckbox;
+    private SwipeRefreshLayout swipeContainer;
     private final Handler handler = new Handler();
     private FirebaseAnalytics mFirebaseAnalytics;
     @Override
@@ -49,6 +51,16 @@ public class WifiList extends AppCompatActivity {
         // Obtain the FirebaseAnalytics instance.
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
         setContentView(R.layout.activity_wifi_list);
+        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                wifi.startScan();
+                Log.w("Scan","Start Scan");
+                Toast.makeText(getBaseContext(),"Scaning Wifi",Toast.LENGTH_SHORT).show();
+                swipeContainer.setRefreshing(false);
+            }
+        });
         mDbHelper = new FeedReaderDbHelper(this);
         selectList = mDbHelper.getSavedList();
         wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
@@ -70,7 +82,7 @@ public class WifiList extends AppCompatActivity {
         }
     }
 
-    @Override
+    /*@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.add(0,0,0,"Refresh").setIcon(R.drawable.refresh).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         return super.onCreateOptionsMenu(menu);
@@ -82,7 +94,7 @@ public class WifiList extends AppCompatActivity {
         Log.w("Scan","Start Scan");
         Toast.makeText(this,"Scaning Wifi",Toast.LENGTH_SHORT).show();
         return super.onOptionsItemSelected(item);
-    }
+    }*/
 
     @Override
     protected void onPause() {
@@ -127,36 +139,75 @@ public class WifiList extends AppCompatActivity {
             for (int i = 0; i < selectList.size(); i++)
             {
                 CheckBox checkBox = getCheckBox(selectList.get(i).split(":")[0]);
-                LinearLayout subView = new LinearLayout(this);
-                subView.setOrientation(LinearLayout.HORIZONTAL);
                 checkBox.setChecked(true);
+                RelativeLayout subView = new RelativeLayout(this);
                 subView.addView(checkBox);
-                ImageView icon = new ImageView(this);
-                icon.setPadding(getDpToInt(8),getDpToInt(6),getDpToInt(8),0);
+                RelativeLayout.LayoutParams paramsMore = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                paramsMore.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                paramsMore.topMargin = getDpToInt(6);
+                ImageView iconMore = new ImageView(this);
+                iconMore.setId(1001 + i);
+                iconMore.setImageResource(R.drawable.ic_more);
+                iconMore.setLayoutParams(paramsMore);
+                registerForContextMenu(iconMore);
+                iconMore.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        registerForContextMenu(view);
+                        view.showContextMenu();
+                        unregisterForContextMenu(view);
+                    }
+                });
+                subView.addView(iconMore);
+                RelativeLayout.LayoutParams paramsToggle = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                paramsToggle.addRule(RelativeLayout.LEFT_OF , iconMore.getId());
+                paramsToggle.topMargin = getDpToInt(6);
+                paramsToggle.rightMargin = getDpToInt(8);
+                ImageView iconToggle = new ImageView(this);
+                iconToggle.setLayoutParams(paramsToggle);
+                subView.addView(iconToggle);
+                linearLayout.addView(subView);
                 switch (selectList.get(i).split(":")[1])
                 {
                     case "1":
-                        icon.setImageResource(R.drawable.ic_silent);
+                        iconToggle.setImageResource(R.drawable.ic_silent);
                         break;
                     case "2":
-                        icon.setImageResource(R.drawable.ic_vibration);
+                        iconToggle.setImageResource(R.drawable.ic_vibration);
                         break;
                     case "3":
-                        icon.setImageResource(R.drawable.ic_normal);
+                        iconToggle.setImageResource(R.drawable.ic_normal);
                         break;
                 }
-                subView.addView(icon);
-                linearLayout.addView(subView);
             }
             for (int i = 0; i < wifiList.size(); i++)
             {
                 CheckBox checkBox = getCheckBox(wifiList.get(i));
-                LinearLayout subView = new LinearLayout(this);
-                subView.setOrientation(LinearLayout.HORIZONTAL);
+                RelativeLayout subView = new RelativeLayout(this);
                 subView.addView(checkBox);
-                ImageView icon = new ImageView(this);
-                icon.setPadding(getDpToInt(8),getDpToInt(6),getDpToInt(8),0);
-                subView.addView(icon);
+                RelativeLayout.LayoutParams paramsMore = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                paramsMore.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                paramsMore.topMargin = getDpToInt(6);
+                ImageView iconMore = new ImageView(this);
+                iconMore.setId(2001 + i);
+                iconMore.setLayoutParams(paramsMore);
+                iconMore.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        registerForContextMenu(view);
+                        view.showContextMenu();
+                        unregisterForContextMenu(view);
+                    }
+                });
+                //registerForContextMenu(iconMore);
+                subView.addView(iconMore);
+                RelativeLayout.LayoutParams paramsToggle = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                paramsToggle.addRule(RelativeLayout.LEFT_OF , iconMore.getId());
+                paramsToggle.topMargin = getDpToInt(6);
+                paramsToggle.rightMargin = getDpToInt(8);
+                ImageView iconToggle = new ImageView(this);
+                iconToggle.setLayoutParams(paramsToggle);
+                subView.addView(iconToggle);
                 linearLayout.addView(subView);
             }
         }
@@ -167,27 +218,34 @@ public class WifiList extends AppCompatActivity {
 
         final CheckBox checkBox = new CheckBox(this);
         checkBox.setText(title);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.rightMargin = getDpToInt(80);
+        params.topMargin = getDpToInt(6);
+        params.leftMargin = getDpToInt(8);
         checkBox.setTextSize(24);
         checkBox.setLayoutParams(params);
-        checkBox.setPadding(getDpToInt(8),0,getDpToInt(8),0);
-        registerForContextMenu(checkBox);
         checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (checkBox.isChecked())
                 {
-                    LinearLayout subView = (LinearLayout) checkBox.getParent();
-                    ImageView icon = (ImageView) subView.getChildAt(1);
-                    icon.setImageResource(R.drawable.ic_vibration);
+                    RelativeLayout subView = (RelativeLayout) checkBox.getParent();
+                    ImageView iconMore = (ImageView) subView.getChildAt(1);
+                    iconMore.setImageResource(R.drawable.ic_more);
+                    ImageView iconToggle = (ImageView) subView.getChildAt(2);
+                    iconToggle.setImageResource(R.drawable.ic_vibration);
                     mDbHelper.addSSID((String) checkBox.getText());
+                    subView.invalidate();
                 }
                 else
                 {
-                    LinearLayout subView = (LinearLayout) checkBox.getParent();
-                    ImageView icon = (ImageView) subView.getChildAt(1);
-                    icon.setImageDrawable(null);
+                    RelativeLayout subView = (RelativeLayout) checkBox.getParent();
+                    ImageView iconMore = (ImageView) subView.getChildAt(1);
+                    iconMore.setImageDrawable(null);
+                    ImageView iconToggle = (ImageView) subView.getChildAt(2);
+                    iconToggle.setImageDrawable(null);
                     mDbHelper.removeSSID((String) checkBox.getText());
+                    subView.invalidate();
                 }
             }
         });
@@ -196,7 +254,8 @@ public class WifiList extends AppCompatActivity {
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        currentCheckbox = (CheckBox) v;
+        RelativeLayout subView = (RelativeLayout) v.getParent();
+        currentCheckbox = (CheckBox) subView.getChildAt(0);
         if (currentCheckbox.isChecked())
         {
             super.onCreateContextMenu(menu, v, menuInfo);
@@ -207,8 +266,8 @@ public class WifiList extends AppCompatActivity {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        LinearLayout subView = (LinearLayout) currentCheckbox.getParent();
-        ImageView icon = (ImageView) subView.getChildAt(1);
+        RelativeLayout subView = (RelativeLayout) currentCheckbox.getParent();
+        ImageView icon = (ImageView) subView.getChildAt(2);
         switch (item.getItemId())
         {
             case R.id.silent:
