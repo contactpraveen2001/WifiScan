@@ -55,7 +55,7 @@ public class WifiReceiver extends BroadcastReceiver
                 {
                     case "1":
                         audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
-                        Log.w("Scan","RINGER_MODE_VIBRATE");
+                        Log.w("Scan","RINGER_MODE_SILENT");
                         return;
                     case "2":
                         audioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
@@ -63,7 +63,7 @@ public class WifiReceiver extends BroadcastReceiver
                         return;
                     case "3":
                         audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-                        Log.w("Scan","RINGER_MODE_VIBRATE");
+                        Log.w("Scan","RINGER_MODE_NORMAL");
                         return;
                 }
 
