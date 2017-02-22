@@ -1,11 +1,13 @@
 package com.example.praveenagrawal.wifiscan;
 
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -27,6 +29,18 @@ public class WifiReceiver extends BroadcastReceiver
         if (audioManager.getRingerMode() != AudioManager.RINGER_MODE_NORMAL &&  audioManager.getRingerMode() != AudioManager.RINGER_MODE_VIBRATE && audioManager.getRingerMode() != AudioManager.RINGER_MODE_SILENT)
         {
             return;
+        }
+        if (audioManager.getRingerMode() == AudioManager.RINGER_MODE_SILENT)
+        {
+            NotificationManager notificationManager = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && !notificationManager.isNotificationPolicyAccessGranted()) {
+
+                return;
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && notificationManager.getCurrentInterruptionFilter() == NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+            {
+                return;
+            }
         }
         if (wifiManager.isWifiEnabled() == false)
         {
