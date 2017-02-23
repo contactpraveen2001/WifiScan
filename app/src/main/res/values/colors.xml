@@ -3,5 +3,6 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#7C4DFF</color>
-    <color name="cardBackground">#D3D3D3</color>
+    <color name="formBackground">#A9A9A9</color>
+    <color name="cardBackground">#FFFFFF</color>
 </resources>

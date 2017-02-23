@@ -52,13 +52,21 @@ public class WifiList extends AppCompatActivity {
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
         setContentView(R.layout.activity_wifi_list);
         swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+        swipeContainer.setColorSchemeResources(R.color.colorAccent,R.color.colorPrimary,R.color.formBackground,R.color.colorPrimaryDark);
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 wifi.startScan();
                 Log.w("Scan","Start Scan");
                 Toast.makeText(getBaseContext(),"Scaning Wifi",Toast.LENGTH_SHORT).show();
-                swipeContainer.setRefreshing(false);
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Do something after 5s = 5000ms
+                        swipeContainer.setRefreshing(false);
+                    }
+                }, 3000);
             }
         });
         mDbHelper = new FeedReaderDbHelper(this);
@@ -141,6 +149,7 @@ public class WifiList extends AppCompatActivity {
                 CheckBox checkBox = getCheckBox(selectList.get(i).split(":")[0]);
                 checkBox.setChecked(true);
                 RelativeLayout subView = new RelativeLayout(this);
+                subView.setPadding(0,0,0,getDpToInt(8));
                 subView.addView(checkBox);
                 RelativeLayout.LayoutParams paramsMore = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 paramsMore.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
@@ -167,6 +176,10 @@ public class WifiList extends AppCompatActivity {
                 iconToggle.setLayoutParams(paramsToggle);
                 subView.addView(iconToggle);
                 linearLayout.addView(subView);
+                View space = new View(this);
+                space.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,getDpToInt(1)));
+                space.setBackgroundColor(0xFFA9A9A9);
+                linearLayout.addView(space);
                 switch (selectList.get(i).split(":")[1])
                 {
                     case "1":
@@ -184,6 +197,7 @@ public class WifiList extends AppCompatActivity {
             {
                 CheckBox checkBox = getCheckBox(wifiList.get(i));
                 RelativeLayout subView = new RelativeLayout(this);
+                subView.setPadding(0,0,0,getDpToInt(8));
                 subView.addView(checkBox);
                 RelativeLayout.LayoutParams paramsMore = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 paramsMore.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
@@ -209,6 +223,10 @@ public class WifiList extends AppCompatActivity {
                 iconToggle.setLayoutParams(paramsToggle);
                 subView.addView(iconToggle);
                 linearLayout.addView(subView);
+                View space = new View(this);
+                space.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,getDpToInt(1)));
+                space.setBackgroundColor(0xFFA9A9A9);
+                linearLayout.addView(space);
             }
         }
     }
