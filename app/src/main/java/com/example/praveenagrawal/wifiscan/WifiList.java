@@ -326,6 +326,7 @@ public class WifiList extends AppCompatActivity {
             Log.w("Scan","receive Scan");
             ArrayList<String> wifiList = new ArrayList<String>();
             List<ScanResult> scanResultList = wifi.getScanResults();
+            selectList = mDbHelper.getSavedList();
             Log.w("Scan","" + scanResultList.size());
             for (int i = 0; i < scanResultList.size(); i++)
             {
