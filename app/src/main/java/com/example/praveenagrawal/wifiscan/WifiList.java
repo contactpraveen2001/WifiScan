@@ -158,7 +158,6 @@ public class WifiList extends AppCompatActivity {
                 iconMore.setId(1001 + i);
                 iconMore.setImageResource(R.drawable.ic_more);
                 iconMore.setLayoutParams(paramsMore);
-                registerForContextMenu(iconMore);
                 iconMore.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
