@@ -11,6 +11,7 @@ import android.os.Build;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static android.content.Context.AUDIO_SERVICE;
 
@@ -26,6 +27,7 @@ public class WifiReceiver extends BroadcastReceiver
         Log.w("Scan","receive Scan");
         AudioManager audioManager = (AudioManager) c.getSystemService(AUDIO_SERVICE);
         WifiManager wifiManager = (WifiManager) c.getSystemService (c.WIFI_SERVICE);
+        WifiScanDbHelper mDbHelper = new WifiScanDbHelper(c);
         if (audioManager.getRingerMode() != AudioManager.RINGER_MODE_NORMAL &&  audioManager.getRingerMode() != AudioManager.RINGER_MODE_VIBRATE && audioManager.getRingerMode() != AudioManager.RINGER_MODE_SILENT)
         {
             return;
@@ -45,27 +47,36 @@ public class WifiReceiver extends BroadcastReceiver
         if (wifiManager.isWifiEnabled() == false)
         {
             audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+            mDbHelper.updateOutTime();
             return;
         }
         WifiInfo info = wifiManager.getConnectionInfo ();
         if (info == null)
         {
             audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+            mDbHelper.updateOutTime();
             return;
         }
         if (info.getSSID() == null)
         {
             audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+            mDbHelper.updateOutTime();
             return;
         }
         String ssid  = info.getSSID().trim().replaceAll("\"","");
-        FeedReaderDbHelper mDbHelper = new FeedReaderDbHelper(c);
-        ArrayList<String> selectList = mDbHelper.getSavedList();
+        ArrayList<FeedEntryData> selectList = mDbHelper.getSavedList();
+        Boolean didFindSSID = false;
         for (int i = 0; i < selectList.size(); i++)
         {
-            if (ssid.equals(selectList.get(i).split(":")[0]))
+            if (ssid.equals(selectList.get(i).ssid))
             {
-                switch (selectList.get(i).split(":")[1])
+                didFindSSID = true;
+                if (selectList.get(i).isTime.equals("true"))
+                {
+                    mDbHelper.addInTime(selectList.get(i).ssid);
+                }
+                List<TimeEntryData> abc = mDbHelper.getTimeEntryList(selectList.get(i).ssid);
+                switch (selectList.get(i).type)
                 {
                     case "1":
                         audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
@@ -82,10 +93,12 @@ public class WifiReceiver extends BroadcastReceiver
                 }
 
             }
-            else
-            {
-                audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-            }
+        }
+        if (!didFindSSID)
+        {
+            audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+            mDbHelper.updateOutTime();
+            return;
         }
     }
 }

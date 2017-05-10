@@ -39,8 +39,8 @@ public class WifiList extends AppCompatActivity {
     WifiManager wifi;
     WifiReceiver wifiAdapter;
     ScanList scanList;
-    ArrayList<String> selectList;
-    FeedReaderDbHelper mDbHelper;
+    ArrayList<FeedEntryData> selectList;
+    WifiScanDbHelper mDbHelper;
     CheckBox currentCheckbox;
     private SwipeRefreshLayout swipeContainer;
     private final Handler handler = new Handler();
@@ -69,9 +69,9 @@ public class WifiList extends AppCompatActivity {
                 }, 3000);
             }
         });
-        mDbHelper = new FeedReaderDbHelper(this);
+        mDbHelper = new WifiScanDbHelper(this);
         selectList = mDbHelper.getSavedList();
-        wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         if (Build.VERSION.SDK_INT >= M && checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
         {
              requestPermissions(new String[] {Manifest.permission.ACCESS_COARSE_LOCATION},0x12345);
@@ -146,18 +146,13 @@ public class WifiList extends AppCompatActivity {
             linearLayout.removeAllViewsInLayout();
             for (int i = 0; i < selectList.size(); i++)
             {
-                CheckBox checkBox = getCheckBox(selectList.get(i).split(":")[0]);
+                CheckBox checkBox = getCheckBox(selectList.get(i).ssid);
                 checkBox.setChecked(true);
                 RelativeLayout subView = new RelativeLayout(this);
                 subView.setPadding(0,0,0,getDpToInt(8));
                 subView.addView(checkBox);
-                RelativeLayout.LayoutParams paramsMore = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                paramsMore.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-                paramsMore.topMargin = getDpToInt(6);
-                ImageView iconMore = new ImageView(this);
-                iconMore.setId(1001 + i);
+                ImageView iconMore = getIcon(null,1001+i);
                 iconMore.setImageResource(R.drawable.ic_more);
-                iconMore.setLayoutParams(paramsMore);
                 iconMore.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -167,29 +162,46 @@ public class WifiList extends AppCompatActivity {
                     }
                 });
                 subView.addView(iconMore);
-                RelativeLayout.LayoutParams paramsToggle = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                paramsToggle.addRule(RelativeLayout.LEFT_OF , iconMore.getId());
-                paramsToggle.topMargin = getDpToInt(6);
-                paramsToggle.rightMargin = getDpToInt(8);
-                ImageView iconToggle = new ImageView(this);
-                iconToggle.setLayoutParams(paramsToggle);
+                ImageView iconToggle = getIcon(iconMore,1002+i);
                 subView.addView(iconToggle);
+                ImageView iconTimes = getIcon(iconToggle,1003+i);
+                iconTimes.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                      timeIconClicked(v);
+                    }
+                });
+                subView.addView(iconTimes);
                 linearLayout.addView(subView);
                 View space = new View(this);
                 space.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,getDpToInt(1)));
                 space.setBackgroundColor(0xFFA9A9A9);
                 linearLayout.addView(space);
-                switch (selectList.get(i).split(":")[1])
+                switch (selectList.get(i).type)
                 {
                     case "1":
                         iconToggle.setImageResource(R.drawable.ic_silent);
+                        iconToggle.setTag("1");
                         break;
                     case "2":
                         iconToggle.setImageResource(R.drawable.ic_vibration);
+                        iconToggle.setTag("2");
                         break;
                     case "3":
                         iconToggle.setImageResource(R.drawable.ic_normal);
+                        iconToggle.setTag("3");
                         break;
+                }
+                if (selectList.get(i).isTime.compareToIgnoreCase("true") == 0)
+                {
+                    iconTimes.setImageResource(R.drawable.ic_timer);
+                    iconTimes.setTag("true");
+
+                }
+                else
+                {
+                    iconTimes.setImageResource(R.drawable.ic_timer_off);
+                    iconTimes.setTag("false");
                 }
             }
             for (int i = 0; i < wifiList.size(); i++)
@@ -198,12 +210,7 @@ public class WifiList extends AppCompatActivity {
                 RelativeLayout subView = new RelativeLayout(this);
                 subView.setPadding(0,0,0,getDpToInt(8));
                 subView.addView(checkBox);
-                RelativeLayout.LayoutParams paramsMore = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                paramsMore.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-                paramsMore.topMargin = getDpToInt(6);
-                ImageView iconMore = new ImageView(this);
-                iconMore.setId(2001 + i);
-                iconMore.setLayoutParams(paramsMore);
+                ImageView iconMore = getIcon(null,2001+1);
                 iconMore.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -212,15 +219,19 @@ public class WifiList extends AppCompatActivity {
                         unregisterForContextMenu(view);
                     }
                 });
-                //registerForContextMenu(iconMore);
                 subView.addView(iconMore);
-                RelativeLayout.LayoutParams paramsToggle = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                paramsToggle.addRule(RelativeLayout.LEFT_OF , iconMore.getId());
-                paramsToggle.topMargin = getDpToInt(6);
-                paramsToggle.rightMargin = getDpToInt(8);
-                ImageView iconToggle = new ImageView(this);
-                iconToggle.setLayoutParams(paramsToggle);
+                ImageView iconToggle = getIcon(iconMore,2002+1);
+                iconToggle.setTag("2");
                 subView.addView(iconToggle);
+                ImageView iconTimes = getIcon(iconToggle,2003+1);
+                iconTimes.setTag("false");
+                iconTimes.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        timeIconClicked(v);
+                    }
+                });
+                subView.addView(iconTimes);
                 linearLayout.addView(subView);
                 View space = new View(this);
                 space.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,getDpToInt(1)));
@@ -251,6 +262,8 @@ public class WifiList extends AppCompatActivity {
                     iconMore.setImageResource(R.drawable.ic_more);
                     ImageView iconToggle = (ImageView) subView.getChildAt(2);
                     iconToggle.setImageResource(R.drawable.ic_vibration);
+                    ImageView iconTimer = (ImageView) subView.getChildAt(3);
+                    iconTimer.setImageResource(R.drawable.ic_timer_off);
                     mDbHelper.addSSID((String) checkBox.getText());
                     subView.invalidate();
                 }
@@ -261,6 +274,8 @@ public class WifiList extends AppCompatActivity {
                     iconMore.setImageDrawable(null);
                     ImageView iconToggle = (ImageView) subView.getChildAt(2);
                     iconToggle.setImageDrawable(null);
+                    ImageView iconTimer = (ImageView) subView.getChildAt(3);
+                    iconTimer.setImageDrawable(null);
                     mDbHelper.removeSSID((String) checkBox.getText());
                     subView.invalidate();
                 }
@@ -269,12 +284,36 @@ public class WifiList extends AppCompatActivity {
         return checkBox;
     }
 
+    public ImageView getIcon(ImageView rightIcon, int iconId)
+    {
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (rightIcon == null)
+        {
+            params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        }
+        else
+        {
+            params.addRule(RelativeLayout.LEFT_OF , rightIcon.getId());
+            params.rightMargin = getDpToInt(8);
+        }
+        params.topMargin = getDpToInt(6);
+        final ImageView icon = new ImageView(this);
+        icon.setId(iconId);
+        icon.setLayoutParams(params);
+        return  icon;
+    }
+
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         RelativeLayout subView = (RelativeLayout) v.getParent();
         currentCheckbox = (CheckBox) subView.getChildAt(0);
+        ImageView iconTime = (ImageView) subView.getChildAt(3);
         if (currentCheckbox.isChecked())
         {
+            if (iconTime.getTag().equals("true"))
+            {
+                menu.add(0,1003,0,"Show Time Entries");
+            }
             super.onCreateContextMenu(menu, v, menuInfo);
             MenuInflater inflater = getMenuInflater();
             inflater.inflate(R.menu.context_menu, menu);
@@ -298,23 +337,55 @@ public class WifiList extends AppCompatActivity {
                 else
                 {
                     icon.setImageResource(R.drawable.ic_silent);
+                    icon.setTag("1");
                     mDbHelper.updateType(currentCheckbox.getText().toString() , "1");
                     Log.w("item menu" , "silent");
                 }
                 return true;
             case R.id.vibration:
                 icon.setImageResource(R.drawable.ic_vibration);
+                icon.setTag("2");
                 mDbHelper.updateType(currentCheckbox.getText().toString() , "2");
                 Log.w("Item menu", "vibration");
                 return true;
             case R.id.ring:
                 icon.setImageResource(R.drawable.ic_normal);
+                icon.setTag("3");
                 mDbHelper.updateType(currentCheckbox.getText().toString() , "3");
                 Log.w("Item menu", "Normal");
+                return true;
+            case 1003:
+                Toast.makeText(this,"Opening Time Entry",Toast.LENGTH_SHORT).show();
+                Intent timeListActivity = new Intent(this, TimeListActivity.class);
+                Bundle b = new Bundle();
+                b.putString("ssid",(String) currentCheckbox.getText());
+                timeListActivity.putExtras(b);
+                startActivity(timeListActivity);
                 return true;
         }
 
         return super.onContextItemSelected(item);
+    }
+
+    public void timeIconClicked( View timeIcon)
+    {
+        RelativeLayout subView = (RelativeLayout) timeIcon.getParent();
+        CheckBox checkBox = (CheckBox) subView.getChildAt(0);
+        ImageView iconTime = (ImageView) subView.getChildAt(3);
+        if (iconTime.getTag() == "true")
+        {
+            Toast.makeText(getBaseContext(),"Time tracking is off",Toast.LENGTH_SHORT).show();
+            iconTime.setImageResource(R.drawable.ic_timer_off);
+            iconTime.setTag("false");
+            mDbHelper.updateTime(checkBox.getText().toString() , "false");
+        }
+        else
+        {
+            Toast.makeText(getBaseContext(),"Time tracking is on",Toast.LENGTH_SHORT).show();
+            iconTime.setImageResource(R.drawable.ic_timer);
+            iconTime.setTag("true");
+            mDbHelper.updateTime(checkBox.getText().toString() , "true");
+        }
     }
 
     public class ScanList extends BroadcastReceiver
@@ -348,7 +419,7 @@ public class WifiList extends AppCompatActivity {
             }
             for (int i = 0; i < selectList.size(); i++)
             {
-                String savedSSID = selectList.get(i).split(":")[0];
+                String savedSSID = selectList.get(i).ssid;
                 for (int j = 0; j < wifiList.size(); j++)
                 {
                     if (savedSSID.equals(wifiList.get(j)))
